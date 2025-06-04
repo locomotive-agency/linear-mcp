@@ -89,6 +89,7 @@ The server currently supports the following operations:
 - ✅ Search issues with filtering
 - ✅ Associate issues with projects
 - ✅ Create parent/child issue relationships
+- ✅ Read and create comments and threaded comments
 
 ### Project Management
 - ✅ Create projects with associated issues
@@ -138,7 +139,6 @@ The MCP server automatically:
 The following features are currently being worked on:
 
 ### Issue Management
-- 🚧 Comment functionality (add/edit comments, threading)
 - 🚧 Complex search filters
 - 🚧 Pagination support for large result sets
 
