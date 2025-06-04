@@ -110,6 +110,10 @@ export const SEARCH_PROJECTS_QUERY = gql`
         id
         name
         description
+        documentContent {
+          content
+          contentState
+        }
         url
         teams {
           nodes {
@@ -128,6 +132,10 @@ export const GET_PROJECT_QUERY = gql`
       id
       name
       description
+      documentContent {
+        content
+        contentState
+      }
       url
       teams {
         nodes {

@@ -16,7 +16,8 @@ import {
 import {
   ProjectInput,
   ProjectResponse,
-  SearchProjectsResponse
+  SearchProjectsResponse,
+  GetProjectResponse
 } from '../features/projects/types/project.types.js';
 import {
   TeamResponse,
@@ -157,13 +158,13 @@ export class LinearGraphQLClient {
     return this.execute<UserResponse>(GET_USER_QUERY);
   }
 
-  // Get project info
-  async getProject(id: string): Promise<ProjectResponse> {
+  // Get project info with documentContent support
+  async getProject(id: string): Promise<GetProjectResponse> {
     const { GET_PROJECT_QUERY } = await import('./queries.js');
-    return this.execute<ProjectResponse>(GET_PROJECT_QUERY, { id });
+    return this.execute<GetProjectResponse>(GET_PROJECT_QUERY, { id });
   }
 
-  // Search projects
+  // Search projects with documentContent support
   async searchProjects(filter: { name?: { eq: string } }): Promise<SearchProjectsResponse> {
     const { SEARCH_PROJECTS_QUERY } = await import('./queries.js');
     return this.execute<SearchProjectsResponse>(SEARCH_PROJECTS_QUERY, { filter });
