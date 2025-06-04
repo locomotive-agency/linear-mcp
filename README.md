@@ -141,7 +141,6 @@ The following features are currently being worked on:
 - 🚧 Comment functionality (add/edit comments, threading)
 - 🚧 Complex search filters
 - 🚧 Pagination support for large result sets
-- 🚧 Rich text description support for issues (similar to projects)
 
 ### Metadata Operations
 - 🚧 Label management (create/update/assign)

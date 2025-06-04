@@ -27,6 +27,11 @@ import {
 import {
   UserResponse
 } from '../features/users/types/user.types.js';
+import {
+  CreateCommentInput,
+  CreateCommentResponse,
+  GetIssueCommentsResponse
+} from '../features/comments/types/comment.types.js';
 
 export class LinearGraphQLClient {
   private linearClient: LinearClient;
@@ -182,5 +187,27 @@ export class LinearGraphQLClient {
   async deleteIssues(ids: string[]): Promise<DeleteIssueResponse> {
     const { DELETE_ISSUES_MUTATION } = await import('./mutations.js');
     return this.execute<DeleteIssueResponse>(DELETE_ISSUES_MUTATION, { ids });
+  }
+
+  // Get comments for an issue
+  async getIssueComments(
+    issueId: string,
+    first: number = 50,
+    after?: string,
+    includeArchived: boolean = false
+  ): Promise<GetIssueCommentsResponse> {
+    const { GET_ISSUE_COMMENTS_QUERY } = await import('./queries.js');
+    return this.execute<GetIssueCommentsResponse>(GET_ISSUE_COMMENTS_QUERY, {
+      issueId,
+      first,
+      after,
+      includeArchived
+    });
+  }
+
+  // Create a comment
+  async createComment(input: CreateCommentInput): Promise<CreateCommentResponse> {
+    const { CREATE_COMMENT_MUTATION } = await import('./mutations.js');
+    return this.execute<CreateCommentResponse>(CREATE_COMMENT_MUTATION, { input });
   }
 }
