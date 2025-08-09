@@ -498,4 +498,222 @@ export const toolSchemas = {
       required: ['body', 'issueId'],
     },
   },
+
+  linear_create_project_milestone: {
+    name: 'linear_create_project_milestone',
+    description: 'Create a new project milestone in Linear',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+          description: 'The name of the project milestone',
+        },
+        projectId: {
+          type: 'string',
+          description: 'The ID of the project this milestone belongs to',
+        },
+        description: {
+          type: 'string',
+          description: 'The description of the project milestone in markdown format',
+          optional: true,
+        },
+        targetDate: {
+          type: 'string',
+          description: 'The planned target date of the project milestone (ISO 8601 format)',
+          optional: true,
+        },
+        sortOrder: {
+          type: 'number',
+          description: 'The sort order for the project milestone within a project',
+          optional: true,
+        },
+      },
+      required: ['name', 'projectId'],
+    },
+  },
+
+  linear_update_project_milestone: {
+    name: 'linear_update_project_milestone',
+    description: 'Update an existing project milestone',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+          description: 'The ID of the project milestone to update',
+        },
+        name: {
+          type: 'string',
+          description: 'The name of the project milestone',
+          optional: true,
+        },
+        description: {
+          type: 'string',
+          description: 'The description of the project milestone in markdown format',
+          optional: true,
+        },
+        targetDate: {
+          type: 'string',
+          description: 'The planned target date of the project milestone (ISO 8601 format)',
+          optional: true,
+        },
+        projectId: {
+          type: 'string',
+          description: 'The ID of the project this milestone belongs to',
+          optional: true,
+        },
+        sortOrder: {
+          type: 'number',
+          description: 'The sort order for the project milestone within a project',
+          optional: true,
+        },
+      },
+      required: ['id'],
+    },
+  },
+
+  linear_delete_project_milestone: {
+    name: 'linear_delete_project_milestone',
+    description: 'Delete a project milestone',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+          description: 'The ID of the project milestone to delete',
+        },
+      },
+      required: ['id'],
+    },
+  },
+
+  linear_get_project_milestone: {
+    name: 'linear_get_project_milestone',
+    description: 'Get information about a specific project milestone',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+          description: 'The ID of the project milestone to retrieve',
+        },
+      },
+      required: ['id'],
+    },
+  },
+
+  linear_search_project_milestones: {
+    name: 'linear_search_project_milestones',
+    description: 'Search for project milestones with filtering and pagination',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+          description: 'Filter by milestone name (exact match)',
+          optional: true,
+        },
+        projectId: {
+          type: 'string',
+          description: 'Filter by project ID',
+          optional: true,
+        },
+        targetDate: {
+          type: 'string',
+          description: 'Filter by target date (ISO 8601 format)',
+          optional: true,
+        },
+        first: {
+          type: 'number',
+          description: 'Number of milestones to return (default: 50)',
+          optional: true,
+        },
+        after: {
+          type: 'string',
+          description: 'Cursor for pagination',
+          optional: true,
+        },
+        orderBy: {
+          type: 'string',
+          description: 'Field to order by (default: updatedAt)',
+          optional: true,
+        },
+      },
+    },
+  },
+
+  linear_get_project_milestones: {
+    name: 'linear_get_project_milestones',
+    description: 'Get all milestones for a specific project',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectId: {
+          type: 'string',
+          description: 'The ID of the project to get milestones for',
+        },
+        first: {
+          type: 'number',
+          description: 'Number of milestones to return (default: 50)',
+          optional: true,
+        },
+        after: {
+          type: 'string',
+          description: 'Cursor for pagination',
+          optional: true,
+        },
+        orderBy: {
+          type: 'string',
+          description: 'Field to order by (default: sortOrder)',
+          optional: true,
+        },
+      },
+      required: ['projectId'],
+    },
+  },
+
+  linear_create_project_milestones: {
+    name: 'linear_create_project_milestones',
+    description: 'Create multiple project milestones at once',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectId: {
+          type: 'string',
+          description: 'The ID of the project to create milestones for',
+        },
+        milestones: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: 'The name of the project milestone',
+              },
+              description: {
+                type: 'string',
+                description: 'The description of the project milestone in markdown format',
+                optional: true,
+              },
+              targetDate: {
+                type: 'string',
+                description: 'The planned target date of the project milestone (ISO 8601 format)',
+                optional: true,
+              },
+              sortOrder: {
+                type: 'number',
+                description: 'The sort order for the project milestone within a project',
+                optional: true,
+              },
+            },
+            required: ['name'],
+          },
+          description: 'Array of milestones to create',
+        },
+      },
+      required: ['projectId', 'milestones'],
+    },
+  },
 };

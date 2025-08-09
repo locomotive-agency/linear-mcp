@@ -202,3 +202,93 @@ export const GET_ISSUE_COMMENTS_QUERY = gql`
     }
   }
 `;
+
+export const SEARCH_PROJECT_MILESTONES_QUERY = gql`
+  query SearchProjectMilestones(
+    $filter: ProjectMilestoneFilter
+    $first: Int
+    $after: String
+    $orderBy: PaginationOrderBy
+  ) {
+    projectMilestones(
+      filter: $filter
+      first: $first
+      after: $after
+      orderBy: $orderBy
+    ) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        id
+        name
+        description
+        documentContent {
+          content
+          contentState
+        }
+        targetDate
+        status
+        progress
+        sortOrder
+        project {
+          id
+          name
+        }
+        issues(first: 10) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            id
+            identifier
+            title
+            url
+          }
+        }
+        archivedAt
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+export const GET_PROJECT_MILESTONE_QUERY = gql`
+  query GetProjectMilestone($id: String!) {
+    projectMilestone(id: $id) {
+      id
+      name
+      description
+      documentContent {
+        content
+        contentState
+      }
+      targetDate
+      status
+      progress
+      sortOrder
+      project {
+        id
+        name
+      }
+      issues(first: 50) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          id
+          identifier
+          title
+          url
+        }
+      }
+      archivedAt
+      createdAt
+      updatedAt
+    }
+  }
+`;

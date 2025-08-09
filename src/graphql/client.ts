@@ -32,6 +32,15 @@ import {
   CreateCommentResponse,
   GetIssueCommentsResponse
 } from '../features/comments/types/comment.types.js';
+import {
+  ProjectMilestoneCreateInput,
+  ProjectMilestoneUpdateInput,
+  ProjectMilestoneResponse,
+  ProjectMilestoneUpdateResponse,
+  ProjectMilestoneDeleteResponse,
+  SearchProjectMilestonesResponse,
+  GetProjectMilestoneResponse
+} from '../features/milestones/types/milestone.types.js';
 
 export class LinearGraphQLClient {
   private linearClient: LinearClient;
@@ -209,5 +218,45 @@ export class LinearGraphQLClient {
   async createComment(input: CreateCommentInput): Promise<CreateCommentResponse> {
     const { CREATE_COMMENT_MUTATION } = await import('./mutations.js');
     return this.execute<CreateCommentResponse>(CREATE_COMMENT_MUTATION, { input });
+  }
+
+  // Create a project milestone
+  async createProjectMilestone(input: ProjectMilestoneCreateInput): Promise<ProjectMilestoneResponse> {
+    const { CREATE_PROJECT_MILESTONE_MUTATION } = await import('./mutations.js');
+    return this.execute<ProjectMilestoneResponse>(CREATE_PROJECT_MILESTONE_MUTATION, { input });
+  }
+
+  // Update a project milestone
+  async updateProjectMilestone(id: string, input: ProjectMilestoneUpdateInput): Promise<ProjectMilestoneUpdateResponse> {
+    const { UPDATE_PROJECT_MILESTONE_MUTATION } = await import('./mutations.js');
+    return this.execute<ProjectMilestoneUpdateResponse>(UPDATE_PROJECT_MILESTONE_MUTATION, { id, input });
+  }
+
+  // Delete a project milestone
+  async deleteProjectMilestone(id: string): Promise<ProjectMilestoneDeleteResponse> {
+    const { DELETE_PROJECT_MILESTONE_MUTATION } = await import('./mutations.js');
+    return this.execute<ProjectMilestoneDeleteResponse>(DELETE_PROJECT_MILESTONE_MUTATION, { id });
+  }
+
+  // Get a specific project milestone
+  async getProjectMilestone(id: string): Promise<GetProjectMilestoneResponse> {
+    const { GET_PROJECT_MILESTONE_QUERY } = await import('./queries.js');
+    return this.execute<GetProjectMilestoneResponse>(GET_PROJECT_MILESTONE_QUERY, { id });
+  }
+
+  // Search project milestones with filtering and pagination
+  async searchProjectMilestones(options: {
+    filter?: any;
+    first?: number;
+    after?: string;
+    orderBy?: string;
+  } = {}): Promise<SearchProjectMilestonesResponse> {
+    const { SEARCH_PROJECT_MILESTONES_QUERY } = await import('./queries.js');
+    return this.execute<SearchProjectMilestonesResponse>(SEARCH_PROJECT_MILESTONES_QUERY, {
+      filter: options.filter,
+      first: options.first || 50,
+      after: options.after,
+      orderBy: options.orderBy || 'updatedAt'
+    });
   }
 }

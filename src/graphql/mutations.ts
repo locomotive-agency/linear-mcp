@@ -167,3 +167,67 @@ export const CREATE_COMMENT_MUTATION = gql`
     }
   }
 `;
+
+export const CREATE_PROJECT_MILESTONE_MUTATION = gql`
+  mutation CreateProjectMilestone($input: ProjectMilestoneCreateInput!) {
+    projectMilestoneCreate(input: $input) {
+      success
+      projectMilestone {
+        id
+        name
+        description
+        documentContent {
+          content
+          contentState
+        }
+        targetDate
+        status
+        progress
+        sortOrder
+        project {
+          id
+          name
+        }
+        createdAt
+        updatedAt
+      }
+      lastSyncId
+    }
+  }
+`;
+
+export const UPDATE_PROJECT_MILESTONE_MUTATION = gql`
+  mutation UpdateProjectMilestone($id: String!, $input: ProjectMilestoneUpdateInput!) {
+    projectMilestoneUpdate(id: $id, input: $input) {
+      success
+      projectMilestone {
+        id
+        name
+        description
+        documentContent {
+          content
+          contentState
+        }
+        targetDate
+        status
+        progress
+        sortOrder
+        project {
+          id
+          name
+        }
+        updatedAt
+      }
+      lastSyncId
+    }
+  }
+`;
+
+export const DELETE_PROJECT_MILESTONE_MUTATION = gql`
+  mutation DeleteProjectMilestone($id: String!) {
+    projectMilestoneDelete(id: $id) {
+      success
+      lastSyncId
+    }
+  }
+`;

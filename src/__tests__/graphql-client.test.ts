@@ -26,6 +26,15 @@ import {
 import {
   UserResponse
 } from '../features/users/types/user.types';
+import {
+  ProjectMilestoneCreateInput,
+  ProjectMilestoneUpdateInput,
+  ProjectMilestoneResponse,
+  ProjectMilestoneUpdateResponse,
+  ProjectMilestoneDeleteResponse,
+  SearchProjectMilestonesResponse,
+  GetProjectMilestoneResponse
+} from '../features/milestones/types/milestone.types';
 
 jest.mock('@linear/sdk');
 
@@ -842,4 +851,428 @@ describe('LinearGraphQLClient', () => {
       )
     })
   })
+
+  describe('Project Milestone Operations', () => {
+    describe('createProjectMilestone', () => {
+      it('should successfully create a project milestone', async () => {
+        const mockResponse = {
+          data: {
+            projectMilestoneCreate: {
+              success: true,
+              projectMilestone: {
+                id: 'milestone-1',
+                name: 'Q1 Milestone',
+                description: 'First quarter milestone',
+                status: 'unstarted',
+                progress: 0,
+                project: {
+                  id: 'project-1',
+                  name: 'Test Project',
+                },
+                targetDate: '2024-03-31',
+              },
+              lastSyncId: 123,
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce(mockResponse);
+
+        const input: ProjectMilestoneCreateInput = {
+          name: 'Q1 Milestone',
+          description: 'First quarter milestone',
+          projectId: 'project-1',
+          targetDate: '2024-03-31',
+        };
+
+        const result: ProjectMilestoneResponse = await graphqlClient.createProjectMilestone(input);
+
+        expect(result).toEqual(mockResponse.data);
+        expect(mockRawRequest).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            input: input
+          })
+        );
+      });
+
+      it('should handle creation errors', async () => {
+        mockRawRequest.mockRejectedValueOnce(new Error('Milestone creation failed'));
+
+        const input: ProjectMilestoneCreateInput = {
+          name: 'Q1 Milestone',
+          projectId: 'project-1',
+        };
+
+        await expect(
+          graphqlClient.createProjectMilestone(input)
+        ).rejects.toThrow('GraphQL operation failed: Milestone creation failed');
+      });
+    });
+
+    describe('updateProjectMilestone', () => {
+      it('should successfully update a project milestone', async () => {
+        const mockResponse = {
+          data: {
+            projectMilestoneUpdate: {
+              success: true,
+              projectMilestone: {
+                id: 'milestone-1',
+                name: 'Updated Milestone',
+                description: 'Updated description',
+                status: 'next',
+                progress: 25,
+                project: {
+                  id: 'project-1',
+                  name: 'Test Project',
+                },
+                targetDate: '2024-04-30',
+              },
+              lastSyncId: 124,
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce(mockResponse);
+
+        const input: ProjectMilestoneUpdateInput = {
+          name: 'Updated Milestone',
+          description: 'Updated description',
+          targetDate: '2024-04-30',
+        };
+
+        const result: ProjectMilestoneUpdateResponse = await graphqlClient.updateProjectMilestone('milestone-1', input);
+
+        expect(result).toEqual(mockResponse.data);
+        expect(mockRawRequest).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            id: 'milestone-1',
+            input: input
+          })
+        );
+      });
+
+      it('should handle update errors', async () => {
+        mockRawRequest.mockRejectedValueOnce(new Error('Milestone update failed'));
+
+        const input: ProjectMilestoneUpdateInput = {
+          name: 'Updated Milestone',
+        };
+
+        await expect(
+          graphqlClient.updateProjectMilestone('milestone-1', input)
+        ).rejects.toThrow('GraphQL operation failed: Milestone update failed');
+      });
+    });
+
+    describe('deleteProjectMilestone', () => {
+      it('should successfully delete a project milestone', async () => {
+        const mockResponse = {
+          data: {
+            projectMilestoneDelete: {
+              success: true,
+              lastSyncId: 125,
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce(mockResponse);
+
+        const result: ProjectMilestoneDeleteResponse = await graphqlClient.deleteProjectMilestone('milestone-1');
+
+        expect(result).toEqual(mockResponse.data);
+        expect(mockRawRequest).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            id: 'milestone-1'
+          })
+        );
+      });
+
+      it('should handle deletion errors', async () => {
+        mockRawRequest.mockRejectedValueOnce(new Error('Milestone deletion failed'));
+
+        await expect(
+          graphqlClient.deleteProjectMilestone('milestone-1')
+        ).rejects.toThrow('GraphQL operation failed: Milestone deletion failed');
+      });
+    });
+
+    describe('getProjectMilestone', () => {
+      it('should successfully get a project milestone', async () => {
+        const mockResponse = {
+          data: {
+            projectMilestone: {
+              id: 'milestone-1',
+              name: 'Q1 Milestone',
+              description: 'First quarter milestone',
+              documentContent: {
+                content: 'Rich text content',
+              },
+              status: 'unstarted',
+              progress: 0,
+              project: {
+                id: 'project-1',
+                name: 'Test Project',
+              },
+              issues: {
+                pageInfo: { hasNextPage: false },
+                nodes: [],
+              },
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce(mockResponse);
+
+        const result: GetProjectMilestoneResponse = await graphqlClient.getProjectMilestone('milestone-1');
+
+        expect(result).toEqual(mockResponse.data);
+        expect(mockRawRequest).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            id: 'milestone-1'
+          })
+        );
+      });
+
+      it('should handle get errors', async () => {
+        mockRawRequest.mockRejectedValueOnce(new Error('Milestone fetch failed'));
+
+        await expect(
+          graphqlClient.getProjectMilestone('milestone-1')
+        ).rejects.toThrow('GraphQL operation failed: Milestone fetch failed');
+      });
+    });
+
+    describe('searchProjectMilestones', () => {
+      it('should successfully search project milestones', async () => {
+        const mockResponse = {
+          data: {
+            projectMilestones: {
+              pageInfo: { hasNextPage: false, endCursor: null },
+              nodes: [
+                {
+                  id: 'milestone-1',
+                  name: 'Q1 Milestone',
+                  description: 'First quarter milestone',
+                  documentContent: null,
+                  status: 'unstarted',
+                  progress: 0,
+                  project: {
+                    id: 'project-1',
+                    name: 'Test Project',
+                  },
+                  issues: {
+                    pageInfo: { hasNextPage: false },
+                    nodes: [],
+                  },
+                  createdAt: '2024-01-01T00:00:00Z',
+                  updatedAt: '2024-01-01T00:00:00Z',
+                },
+              ],
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce(mockResponse);
+
+        const result: SearchProjectMilestonesResponse = await graphqlClient.searchProjectMilestones({
+          filter: { name: { eq: 'Q1 Milestone' } },
+          first: 10,
+        });
+
+        expect(result).toEqual(mockResponse.data);
+        expect(mockRawRequest).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            filter: { name: { eq: 'Q1 Milestone' } },
+            first: 10,
+            after: undefined,
+            orderBy: 'updatedAt'
+          })
+        );
+      });
+
+      it('should handle search errors', async () => {
+        mockRawRequest.mockRejectedValueOnce(new Error('Milestone search failed'));
+
+        await expect(
+          graphqlClient.searchProjectMilestones({})
+        ).rejects.toThrow('GraphQL operation failed: Milestone search failed');
+      });
+    });
+
+    describe('createProjectMilestones (bulk)', () => {
+      it('should successfully create multiple project milestones', async () => {
+        const mockResponses = [
+          {
+            data: {
+              projectMilestoneCreate: {
+                success: true,
+                projectMilestone: {
+                  id: 'milestone-1',
+                  name: 'Feature Requirements',
+                  description: 'Before we can architect, we need a coherent Feature Requirements document with sign-off from product',
+                  status: 'unstarted',
+                  progress: 0,
+                  project: {
+                    id: 'project-1',
+                    name: 'Test Project',
+                  },
+                },
+                lastSyncId: 123,
+              },
+            },
+          },
+          {
+            data: {
+              projectMilestoneCreate: {
+                success: true,
+                projectMilestone: {
+                  id: 'milestone-2',
+                  name: 'Design Approval',
+                  description: 'We need to coordinate with the design team and get sign-off from the product team',
+                  status: 'unstarted',
+                  progress: 0,
+                  project: {
+                    id: 'project-1',
+                    name: 'Test Project',
+                  },
+                },
+                lastSyncId: 124,
+              },
+            },
+          },
+          {
+            data: {
+              projectMilestoneCreate: {
+                success: true,
+                projectMilestone: {
+                  id: 'milestone-3',
+                  name: 'Architecture Approved',
+                  description: 'Before we begin execution, we want to get sign-off from the architecture team',
+                  status: 'unstarted',
+                  progress: 0,
+                  project: {
+                    id: 'project-1',
+                    name: 'Test Project',
+                  },
+                },
+                lastSyncId: 125,
+              },
+            },
+          },
+        ];
+
+        mockRawRequest
+          .mockResolvedValueOnce(mockResponses[0])
+          .mockResolvedValueOnce(mockResponses[1])
+          .mockResolvedValueOnce(mockResponses[2]);
+
+        const milestones: ProjectMilestoneCreateInput[] = [
+          {
+            name: 'Feature Requirements',
+            description: 'Before we can architect, we need a coherent Feature Requirements document with sign-off from product',
+            projectId: 'project-1',
+            sortOrder: 1,
+          },
+          {
+            name: 'Design Approval',
+            description: 'We need to coordinate with the design team and get sign-off from the product team',
+            projectId: 'project-1',
+            sortOrder: 2,
+          },
+          {
+            name: 'Architecture Approved',
+            description: 'Before we begin execution, we want to get sign-off from the architecture team',
+            projectId: 'project-1',
+            sortOrder: 3,
+          },
+        ];
+
+        // Test the bulk creation by calling createProjectMilestone multiple times
+        const results: ProjectMilestoneResponse[] = [];
+        for (const milestone of milestones) {
+          const result = await graphqlClient.createProjectMilestone(milestone);
+          results.push(result);
+        }
+
+        expect(results).toHaveLength(3);
+        expect(results[0]).toEqual(mockResponses[0].data);
+        expect(results[1]).toEqual(mockResponses[1].data);
+        expect(results[2]).toEqual(mockResponses[2].data);
+
+        // Verify all three mutations were called
+        expect(mockRawRequest).toHaveBeenCalledTimes(3);
+        
+        // Verify each call had the correct input
+        expect(mockRawRequest).toHaveBeenNthCalledWith(1, 
+          expect.any(String),
+          expect.objectContaining({ input: milestones[0] })
+        );
+        expect(mockRawRequest).toHaveBeenNthCalledWith(2,
+          expect.any(String), 
+          expect.objectContaining({ input: milestones[1] })
+        );
+        expect(mockRawRequest).toHaveBeenNthCalledWith(3,
+          expect.any(String),
+          expect.objectContaining({ input: milestones[2] })
+        );
+      });
+
+      it('should handle partial failures in bulk creation', async () => {
+        const mockResponses = [
+          {
+            data: {
+              projectMilestoneCreate: {
+                success: true,
+                projectMilestone: {
+                  id: 'milestone-1',
+                  name: 'Feature Requirements',
+                  status: 'unstarted',
+                  progress: 0,
+                  project: {
+                    id: 'project-1',
+                    name: 'Test Project',
+                  },
+                },
+                lastSyncId: 123,
+              },
+            },
+          },
+        ];
+
+        mockRawRequest
+          .mockResolvedValueOnce(mockResponses[0])
+          .mockRejectedValueOnce(new Error('Second milestone failed'));
+
+        const milestones: ProjectMilestoneCreateInput[] = [
+          {
+            name: 'Feature Requirements',
+            projectId: 'project-1',
+            sortOrder: 1,
+          },
+          {
+            name: 'Design Approval',
+            projectId: 'project-1',
+            sortOrder: 2,
+          },
+        ];
+
+        // Test that first succeeds and second fails
+        const firstResult = await graphqlClient.createProjectMilestone(milestones[0]);
+        expect(firstResult).toEqual(mockResponses[0].data);
+
+        await expect(
+          graphqlClient.createProjectMilestone(milestones[1])
+        ).rejects.toThrow('GraphQL operation failed: Second milestone failed');
+
+        expect(mockRawRequest).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
 });
