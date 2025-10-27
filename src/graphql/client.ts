@@ -193,9 +193,25 @@ export class LinearGraphQLClient {
   }
 
   // Delete multiple issues
+  // Note: Linear API's issueDelete doesn't support batch ids parameter,
+  // so we execute individual deletes in parallel for better performance and reliability
   async deleteIssues(ids: string[]): Promise<DeleteIssueResponse> {
-    const { DELETE_ISSUES_MUTATION } = await import('./mutations.js');
-    return this.execute<DeleteIssueResponse>(DELETE_ISSUES_MUTATION, { ids });
+    if (ids.length === 0) {
+      return { issueDelete: { success: true } };
+    }
+
+    try {
+      // Execute all deletes in parallel
+      const deletePromises = ids.map(id => this.deleteIssue(id));
+      await Promise.all(deletePromises);
+
+      return { issueDelete: { success: true } };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to delete issues: ${error.message}`);
+      }
+      throw error;
+    }
   }
 
   // Get comments for an issue
