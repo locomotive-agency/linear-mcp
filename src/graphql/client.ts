@@ -259,4 +259,16 @@ export class LinearGraphQLClient {
       orderBy: options.orderBy || 'updatedAt'
     });
   }
+
+  // Create an issue relationship
+  async createIssueRelation(input: { issueId: string; relatedIssueId: string; type: string }): Promise<any> {
+    const { CREATE_ISSUE_RELATION_MUTATION } = await import('./mutations.js');
+    return this.execute<any>(CREATE_ISSUE_RELATION_MUTATION, { input });
+  }
+
+  // Delete an issue relationship
+  async deleteIssueRelation(id: string): Promise<any> {
+    const { DELETE_ISSUE_RELATION_MUTATION } = await import('./mutations.js');
+    return this.execute<any>(DELETE_ISSUE_RELATION_MUTATION, { id });
+  }
 }
