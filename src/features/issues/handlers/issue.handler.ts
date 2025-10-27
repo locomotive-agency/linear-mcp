@@ -6,6 +6,7 @@ import {
   IssueHandlerMethods,
   CreateIssueInput,
   CreateIssuesInput,
+  UpdateIssueInput,
   BulkUpdateIssuesInput,
   SearchIssuesInput,
   DeleteIssueInput,
@@ -101,12 +102,50 @@ export class IssueHandler extends BaseHandler implements IssueHandlerMethods {
 
       return this.createResponse(
         `Successfully created ${createdIssues.length} issues:\n` +
-        createdIssues.map(issue => 
+        createdIssues.map(issue =>
           `- ${issue.identifier}: ${issue.title}\n  URL: ${issue.url}`
         ).join('\n')
       );
     } catch (error) {
       this.handleError(error, 'create issues');
+    }
+  }
+
+  /**
+   * Updates a single issue.
+   */
+  async handleUpdateIssue(args: { issueId: string; update: UpdateIssueInput }): Promise<BaseToolResponse> {
+    try {
+      const client = this.verifyAuth();
+      this.validateRequiredParams(args, ['issueId', 'update']);
+
+      // Convert numeric fields to correct types
+      const processedUpdate = { ...args.update };
+
+      if (processedUpdate.priority !== undefined) {
+        processedUpdate.priority = parseInt(String(processedUpdate.priority), 10);
+
+        if (isNaN(processedUpdate.priority) || processedUpdate.priority < 0 || processedUpdate.priority > 4) {
+          delete processedUpdate.priority;
+        }
+      }
+
+      const result = await client.updateIssue(args.issueId, processedUpdate) as UpdateIssuesResponse;
+
+      if (!result.issueUpdate.success) {
+        throw new Error('Failed to update issue');
+      }
+
+      const updatedIssue = result.issueUpdate.issues[0];
+
+      return this.createResponse(
+        `Successfully updated issue\n` +
+        `Issue: ${updatedIssue.identifier}\n` +
+        `Title: ${updatedIssue.title}\n` +
+        `URL: ${updatedIssue.url}`
+      );
+    } catch (error) {
+      this.handleError(error, 'update issue');
     }
   }
 

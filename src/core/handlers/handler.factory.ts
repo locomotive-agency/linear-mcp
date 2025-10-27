@@ -48,6 +48,7 @@ export class HandlerFactory {
       // Issue tools
       linear_create_issue: { handler: this.issueHandler, method: 'handleCreateIssue' },
       linear_create_issues: { handler: this.issueHandler, method: 'handleCreateIssues' },
+      linear_update_issue: { handler: this.issueHandler, method: 'handleUpdateIssue' },
       linear_bulk_update_issues: { handler: this.issueHandler, method: 'handleBulkUpdateIssues' },
       linear_search_issues: { handler: this.issueHandler, method: 'handleSearchIssues' },
       linear_delete_issue: { handler: this.issueHandler, method: 'handleDeleteIssue' },

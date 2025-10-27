@@ -191,6 +191,56 @@ export const toolSchemas = {
     ]
   },
 
+  linear_update_issue: {
+    name: 'linear_update_issue',
+    description: 'Update a single issue',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        issueId: {
+          type: 'string',
+          description: 'Issue ID (UUID) to update',
+        },
+        update: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: 'New issue title',
+              optional: true,
+            },
+            description: {
+              type: 'string',
+              description: 'New issue description',
+              optional: true,
+            },
+            stateId: {
+              type: 'string',
+              description: 'New state ID',
+              optional: true,
+            },
+            assigneeId: {
+              type: 'string',
+              description: 'New assignee ID',
+              optional: true,
+            },
+            priority: {
+              type: 'number',
+              description: 'New priority (0=None, 1=Urgent, 2=High, 3=Medium, 4=Low)',
+              optional: true,
+            },
+            projectId: {
+              type: 'string',
+              description: 'Associate issue with a project',
+              optional: true,
+            },
+          },
+        },
+      },
+      required: ['issueId', 'update'],
+    },
+  },
+
   linear_bulk_update_issues: {
     name: 'linear_bulk_update_issues',
     description: 'Update multiple issues at once',
