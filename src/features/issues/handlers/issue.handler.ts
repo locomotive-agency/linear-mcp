@@ -302,7 +302,7 @@ export class IssueHandler extends BaseHandler implements IssueHandlerMethods {
       this.validateRequiredParams(args, ['issueId', 'relatedIssueId', 'type']);
 
       // Validate relationship type
-      const validTypes = ['blocks', 'blockedBy', 'relates', 'duplicate', 'duplicateOf'];
+      const validTypes = ['blocks', 'related', 'duplicate'];
       if (!validTypes.includes(args.type)) {
         throw new Error(`Invalid relationship type. Must be one of: ${validTypes.join(', ')}`);
       }

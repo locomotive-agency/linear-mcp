@@ -396,7 +396,7 @@ export const toolSchemas = {
 
   linear_link_issues: {
     name: 'linear_link_issues',
-    description: 'Create a relationship between two issues (blocks, depends on, related, duplicate, etc.)',
+    description: 'Create a relationship between two issues',
     inputSchema: {
       type: 'object',
       properties: {
@@ -410,7 +410,7 @@ export const toolSchemas = {
         },
         type: {
           type: 'string',
-          description: 'Relationship type: "blocks" (this blocks other), "blockedBy" (blocked by other), "relates" (related to), "duplicate" (is duplicate), "duplicateOf" (original of duplicate)',
+          description: 'Relationship type: "blocks" (this issue blocks another), "related" (this issue is related to another), "duplicate" (this issue is a duplicate of another)',
         },
       },
       required: ['issueId', 'relatedIssueId', 'type'],
