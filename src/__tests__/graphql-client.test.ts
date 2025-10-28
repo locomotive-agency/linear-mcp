@@ -650,7 +650,7 @@ describe('LinearGraphQLClient', () => {
       ).rejects.toThrow('GraphQL operation failed: Update failed');
     });
 
-    it('should delete multiple issues with a single mutation', async () => {
+    it('should delete multiple issues with parallel mutations', async () => {
       const mockResponse = {
         data: {
           issueDelete: {
@@ -659,19 +659,26 @@ describe('LinearGraphQLClient', () => {
         }
       };
 
+      // Mock response for each delete call
+      mockRawRequest.mockResolvedValueOnce(mockResponse);
       mockRawRequest.mockResolvedValueOnce(mockResponse);
 
       const ids = ['issue-1', 'issue-2'];
       const result: DeleteIssueResponse = await graphqlClient.deleteIssues(ids);
 
-      expect(result).toEqual(mockResponse.data);
-      // Verify single mutation call
-      expect(mockRawRequest).toHaveBeenCalledTimes(1);
-      expect(mockRawRequest).toHaveBeenCalledWith(
+      expect(result).toEqual({ issueDelete: { success: true } });
+      // Verify parallel mutation calls (one per issue)
+      expect(mockRawRequest).toHaveBeenCalledTimes(2);
+      // Verify each call is for a single issue delete
+      expect(mockRawRequest).toHaveBeenNthCalledWith(
+        1,
         expect.any(String),
-        expect.objectContaining({
-          ids
-        })
+        expect.objectContaining({ id: 'issue-1' })
+      );
+      expect(mockRawRequest).toHaveBeenNthCalledWith(
+        2,
+        expect.any(String),
+        expect.objectContaining({ id: 'issue-2' })
       );
     });
   });
