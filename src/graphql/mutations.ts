@@ -231,3 +231,35 @@ export const DELETE_PROJECT_MILESTONE_MUTATION = gql`
     }
   }
 `;
+
+export const CREATE_ISSUE_RELATION_MUTATION = gql`
+  mutation CreateIssueRelation($input: IssueRelationCreateInput!) {
+    issueRelationCreate(input: $input) {
+      success
+      issueRelation {
+        id
+        type
+        issue {
+          id
+          identifier
+          title
+        }
+        relatedIssue {
+          id
+          identifier
+          title
+        }
+      }
+      lastSyncId
+    }
+  }
+`;
+
+export const DELETE_ISSUE_RELATION_MUTATION = gql`
+  mutation DeleteIssueRelation($id: String!) {
+    issueRelationDelete(id: $id) {
+      success
+      lastSyncId
+    }
+  }
+`;

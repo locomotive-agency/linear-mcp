@@ -292,4 +292,60 @@ export class IssueHandler extends BaseHandler implements IssueHandlerMethods {
       this.handleError(error, 'delete issues');
     }
   }
+
+  /**
+   * Creates a relationship between two issues (parent/child, blocks, depends on, etc.)
+   */
+  async handleLinkIssues(args: { issueId: string; relatedIssueId: string; type: string }): Promise<BaseToolResponse> {
+    try {
+      const client = this.verifyAuth();
+      this.validateRequiredParams(args, ['issueId', 'relatedIssueId', 'type']);
+
+      // Validate relationship type
+      const validTypes = ['blocks', 'blockedBy', 'relates', 'duplicate', 'duplicateOf'];
+      if (!validTypes.includes(args.type)) {
+        throw new Error(`Invalid relationship type. Must be one of: ${validTypes.join(', ')}`);
+      }
+
+      const result = await client.createIssueRelation({
+        issueId: args.issueId,
+        relatedIssueId: args.relatedIssueId,
+        type: args.type
+      }) as any;
+
+      if (!result.issueRelationCreate.success) {
+        throw new Error('Failed to create issue relationship');
+      }
+
+      const relation = result.issueRelationCreate.issueRelation;
+
+      return this.createResponse(
+        `Successfully created relationship\n` +
+        `Relationship: ${relation.issue.identifier} ${args.type} ${relation.relatedIssue.identifier}\n` +
+        `Type: ${relation.type}`
+      );
+    } catch (error) {
+      this.handleError(error, 'link issues');
+    }
+  }
+
+  /**
+   * Removes a relationship between two issues.
+   */
+  async handleUnlinkIssues(args: { relationId: string }): Promise<BaseToolResponse> {
+    try {
+      const client = this.verifyAuth();
+      this.validateRequiredParams(args, ['relationId']);
+
+      const result = await client.deleteIssueRelation(args.relationId) as any;
+
+      if (!result.issueRelationDelete.success) {
+        throw new Error('Failed to delete issue relationship');
+      }
+
+      return this.createResponse(`Successfully removed issue relationship`);
+    } catch (error) {
+      this.handleError(error, 'unlink issues');
+    }
+  }
 }

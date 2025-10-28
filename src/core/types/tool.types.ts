@@ -394,6 +394,44 @@ export const toolSchemas = {
     },
   },
 
+  linear_link_issues: {
+    name: 'linear_link_issues',
+    description: 'Create a relationship between two issues (blocks, depends on, related, duplicate, etc.)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        issueId: {
+          type: 'string',
+          description: 'The source issue ID (UUID)',
+        },
+        relatedIssueId: {
+          type: 'string',
+          description: 'The target issue ID (UUID) to link to',
+        },
+        type: {
+          type: 'string',
+          description: 'Relationship type: "blocks" (this blocks other), "blockedBy" (blocked by other), "relates" (related to), "duplicate" (is duplicate), "duplicateOf" (original of duplicate)',
+        },
+      },
+      required: ['issueId', 'relatedIssueId', 'type'],
+    },
+  },
+
+  linear_unlink_issues: {
+    name: 'linear_unlink_issues',
+    description: 'Remove a relationship between two issues',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        relationId: {
+          type: 'string',
+          description: 'The relationship ID to delete',
+        },
+      },
+      required: ['relationId'],
+    },
+  },
+
   linear_get_project: {
     name: 'linear_get_project',
     description: 'Get project information',
