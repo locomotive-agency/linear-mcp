@@ -1,8 +1,8 @@
 {
-  "name": "linear-mcp",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "@locomotive/linear-mcp",
+  "version": "2.0.0",
+  "description": "Production-grade Linear MCP server with enterprise resilience, performance optimization, and clean architecture",
+  "main": "build/index.js",
   "type": "module",
   "scripts": {
     "test": "jest",
@@ -15,9 +15,38 @@
     "start": "node build/index.js",
     "dev": "nodemon --watch src --ext ts --exec \"npm run build && npm start\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "linear",
+    "linear.app",
+    "linear app",
+    "linear mcp",
+    "linear.app mcp",
+    "linear app mcp",
+    "task management mcp",
+    "project managment mcp",
+    "linear api",
+    "ai task management",
+    "llm task management",
+    "ai agent project management",
+    "ai agent task manager",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "claude-code",
+    "cursor",
+    "openai",
+    "anthropic"
+  ],
+  "author": "LOCOMOTIVE Agency <marty@locomotive.agency>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/locomotive-agency/linear-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/locomotive-agency/linear-mcp/issues"
+  },
+  "homepage": "https://github.com/locomotive-agency/linear-mcp#readme",
   "devDependencies": {
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.0",

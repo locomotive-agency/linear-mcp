@@ -44,14 +44,18 @@ git merge feature/all-improvements
   },
   "keywords": [
     "linear",
-    "mcp",
-    "model-context-protocol",
-    "linear-api",
-    "task-management",
-    "claude",
-    "claude-code",
-    "cursor",
-    "openai"
+    "linear.app",
+    "linear app",
+    "linear mcp",
+    "linear.app mcp",
+    "linear app mcp",
+    "task management mcp",
+    "project managment mcp",
+    "linear api",
+    "ai task management",
+    "llm task management",
+    "ai agent project management",
+    "ai agent task manager"
   ]
 }
 ```
