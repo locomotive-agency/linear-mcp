@@ -497,48 +497,192 @@ src/
 
 ---
 
-## 🎯 Available Tools (24 Total)
+## 🎯 Available Tools (27 Total)
 
-### Issue Tools (13)
-- `linear_create_issue` - Create single issue
-- `linear_create_issues` - Batch create issues
-- `linear_update_issue` - Update single issue
-- `linear_bulk_update_issues` - Update multiple issues
-- `linear_update_issue_milestone` - Assign/remove milestone
-- `linear_search_issues` - Search with filters
-- `linear_delete_issue` - Delete single issue
-- `linear_delete_issues` - Batch delete issues
-- `linear_link_issues` - Create issue relationships
-- `linear_unlink_issues` - Remove issue relationships
-- `linear_get_issue_comments` - Get issue comments
-- `linear_create_comment` - Add comment (with threading)
+### Issue Management (11 tools)
 
-### Project Tools (3)
-- `linear_create_project_with_issues` - Create project + issues atomically
-- `linear_get_project` - Get project with rich text descriptions
-- `linear_search_projects` - Search projects
+#### `linear_create_issue`
+Create a single issue with full field support (title, description, team, assignee, priority, estimate, project, custom display).
 
-### Milestone Tools (6)
-- `linear_create_project_milestone` - Create milestone
-- `linear_update_project_milestone` - Update milestone
-- `linear_delete_project_milestone` - Delete milestone
-- `linear_get_project_milestone` - Get milestone details
-- `linear_search_project_milestones` - Search milestones
-- `linear_get_project_milestones` - List project milestones
-- `linear_create_project_milestones` - Batch create milestones
+#### `linear_create_issues`
+**Batch operation** - Create multiple issues in one API call. ~10x faster than individual creates.
 
-### Team Tools (1)
-- `linear_get_teams` - List teams with states and labels
+#### `linear_update_issue`
+Update any issue field: title, description, assignee, priority, state, project, or milestone.
 
-### User Tools (1)
-- `linear_get_user` - Get authenticated user info
+#### `linear_bulk_update_issues`
+**Batch operation** - Update multiple issues with the same changes. Efficient with per-issue error handling.
 
-### Monitoring Tools (1)
-- `linear_get_rate_limit_status` - Real-time quota monitoring
+#### `linear_update_issue_milestone`
+Assign an issue to a milestone or remove milestone assignment (pass null/empty).
 
-### Authentication Tools (2)
-- `linear_auth` - Initialize OAuth flow
-- `linear_auth_callback` - Handle OAuth callback
+#### `linear_search_issues`
+Search issues with advanced filtering: query text, teams, assignees, states, priority. Supports pagination.
+**Tip**: Keep `first` parameter ≤ 20 for best performance.
+
+#### `linear_delete_issue`
+Delete a single issue by identifier (LOC-123) or UUID.
+
+#### `linear_delete_issues`
+**Batch operation** - Delete multiple issues at once.
+
+#### `linear_link_issues`
+Create relationships between issues: "blocks", "related", or "duplicate".
+
+#### `linear_unlink_issues`
+Remove a relationship between issues.
+
+#### `linear_get_issue_comments`
+Get all comments for an issue, including threaded replies. Supports pagination and archived comments.
+
+#### `linear_create_comment`
+Add a comment to an issue or create threaded reply. Markdown supported. OAuth apps can set custom display name.
+
+---
+
+### Project Management (3 tools)
+
+#### `linear_create_project_with_issues`
+**Atomic operation** - Create a project and initial issues in one transaction.
+**Important**: `teamIds` is an array, not a single `teamId`.
+
+#### `linear_get_project`
+Get detailed project information with **rich text descriptions** (documentContent support).
+
+#### `linear_search_projects`
+Search for projects by exact name match.
+
+---
+
+### Milestone Management (7 tools)
+
+#### `linear_create_project_milestone`
+Create a single milestone with name, description, target date, and sort order.
+
+#### `linear_create_project_milestones`
+**Batch operation** - Create multiple milestones for a project in one call.
+
+#### `linear_get_project_milestone`
+Get detailed milestone information including associated issues.
+
+#### `linear_get_project_milestones`
+List all milestones for a specific project with pagination.
+
+#### `linear_search_project_milestones`
+Search milestones with filters: name, project, target date.
+
+#### `linear_update_project_milestone`
+Update milestone properties: name, description, target date, sort order, or move to different project.
+
+#### `linear_delete_project_milestone`
+Delete a milestone permanently.
+
+---
+
+### Team Management (1 tool)
+
+#### `linear_get_teams`
+List all teams with states, labels, and workflow details.
+**Best Practice**: Call once at session start and cache team IDs.
+
+---
+
+### User Management (1 tool)
+
+#### `linear_get_user`
+Get authenticated user information: ID, name, email, accessible teams.
+**Use**: Verify authentication, get user ID for assignments.
+
+---
+
+### Monitoring & Observability (1 tool)
+
+#### `linear_get_rate_limit_status`
+**Real-time monitoring** of API quota and usage.
+
+**Returns**:
+- Requests made this hour/minute
+- Remaining quota (from API headers)
+- Reset time countdown
+- Warning level: normal (< 80%), warning (80-95%), critical (≥ 95%)
+- Throttle status
+
+**Automatic Features**:
+- Console warnings at 80% usage
+- Console errors at 95% usage
+- Automatic request queuing at 90%
+
+---
+
+### Authentication (2 tools)
+
+#### `linear_auth`
+Initialize OAuth flow (OAuth apps only). Most users should use API Key authentication instead.
+
+#### `linear_auth_callback`
+Handle OAuth authorization callback (OAuth apps only).
+
+---
+
+## 🔧 Tool Details & Examples
+
+### Common Parameters
+
+**Priority Values**:
+- `0` = None
+- `1` = Urgent 🔴
+- `2` = High 🟠
+- `3` = Medium 🟡
+- `4` = Low 🔵
+
+**Common State Names**:
+- "Backlog", "Todo", "In Progress", "In Review", "Done", "Canceled"
+
+**Estimate Points** (story points):
+- Typical values: 1, 2, 3, 5, 8, 13 (Fibonacci sequence)
+
+### Getting Team IDs
+
+```
+"List my Linear teams"
+→ Returns team names, keys, and UUIDs needed for other operations
+```
+
+### Creating Issues with All Options
+
+```
+"Create a Linear issue:
+- Team: LOCOMOTIVE
+- Title: Implement authentication system
+- Description: Add OAuth 2.0 with Google and GitHub providers
+- Priority: High (2)
+- Estimate: 8 points
+- Assignee: marty@locomotive.agency
+- Project: Phase 2 Features"
+```
+
+### Bulk Operations for Efficiency
+
+```
+"Create 10 issues for the new feature:
+1. Research requirements (estimate: 2)
+2. Design architecture (estimate: 3)
+3. Implement backend (estimate: 8)
+..."
+
+→ Uses linear_create_issues for efficient batch creation
+```
+
+### Advanced Filtering
+
+```
+"Find all urgent priority issues that are in Todo or In Progress state for the LOCOMOTIVE team"
+
+→ Uses linear_search_issues with filters:
+  - teamIds: ["team-uuid"]
+  - states: ["Todo", "In Progress"]
+  - priority: 1
+```
 
 ---
 
