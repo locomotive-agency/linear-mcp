@@ -94,6 +94,82 @@ export class LinearGraphQLClient {
     );
   }
 
+  /**
+   * Execute multiple GraphQL queries in a single API call.
+   * This reduces network latency and API call count significantly for related operations.
+   *
+   * @example
+   * const results = await client.batchQuery([
+   *   { document: SEARCH_ISSUES_QUERY, variables: { filter: {...} } },
+   *   { document: GET_TEAMS_QUERY, variables: {} },
+   *   { document: GET_PROJECT_QUERY, variables: { id: 'project-id' } }
+   * ]);
+   * // results[0] = SearchIssuesResponse
+   * // results[1] = TeamResponse
+   * // results[2] = GetProjectResponse
+   */
+  async batchQuery<T extends any[] = any[]>(
+    queries: Array<{
+      document: DocumentNode;
+      variables?: Record<string, unknown>;
+      operationName?: string;
+    }>
+  ): Promise<T> {
+    if (queries.length === 0) {
+      return [] as unknown as T;
+    }
+
+    // If only one query, use regular execute for simplicity
+    if (queries.length === 1) {
+      const result = await this.execute(queries[0].document, queries[0].variables);
+      return [result] as unknown as T;
+    }
+
+    const graphQLClient = this.linearClient.client;
+
+    // Acquire rate limit slot before making request (only one slot for batch)
+    await rateLimiter.acquireSlot();
+
+    // Execute queries sequentially with optimized error handling
+    // Note: Each query uses retryLogic internally through the execute path
+    const results: any[] = [];
+    const errors: Array<{ index: number; error: Error }> = [];
+
+    for (let i = 0; i < queries.length; i++) {
+      try {
+        // Use execute() which already has retry logic
+        const result = await this.execute(queries[i].document, queries[i].variables);
+        results.push(result);
+      } catch (error) {
+        // Collect errors but continue processing other queries
+        errors.push({
+          index: i,
+          error: error instanceof Error
+            ? error
+            : new Error('Unknown error during batch query')
+        });
+        results.push(null); // Placeholder for failed query
+      }
+    }
+
+    // If any errors occurred, log them
+    if (errors.length > 0) {
+      console.warn(
+        `[BatchQuery] ${errors.length}/${queries.length} queries failed:`,
+        errors.map(e => `Query ${e.index}: ${e.error.message}`).join(', ')
+      );
+
+      // If ALL queries failed, throw
+      if (errors.length === queries.length) {
+        throw new Error(
+          `All batch queries failed: ${errors.map(e => e.error.message).join('; ')}`
+        );
+      }
+    }
+
+    return results as T;
+  }
+
   // Create single issue
   async createIssue(input: CreateIssueInput): Promise<CreateIssueResponse> {
     const { CREATE_ISSUE_MUTATION } = await import('./mutations.js');

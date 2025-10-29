@@ -7,7 +7,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { LinearAuth } from './auth.js';
+import { LinearAuth } from './auth/index.js';
 import { LinearGraphQLClient } from './graphql/client.js';
 import { HandlerFactory } from './core/handlers/handler.factory.js';
 import { toolSchemas } from './core/types/tool.types.js';
