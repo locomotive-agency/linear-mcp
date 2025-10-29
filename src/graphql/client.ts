@@ -1,7 +1,9 @@
 import { LinearClient } from '@linear/sdk';
 import { DocumentNode } from 'graphql';
-import { 
-  CreateIssueInput, 
+import { rateLimiter } from '../core/middleware/rate-limiter.js';
+import { retryLogic } from '../core/middleware/retry-logic.js';
+import {
+  CreateIssueInput,
   CreateIssuesInput,
   CreateIssueResponse,
   CreateIssuesResponse,
@@ -54,18 +56,42 @@ export class LinearGraphQLClient {
     variables?: V
   ): Promise<T> {
     const graphQLClient = this.linearClient.client;
-    try {
-      const response = await graphQLClient.rawRequest(
-        document.loc?.source.body || '',
-        variables
-      );
-      return response.data as T;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`GraphQL operation failed: ${error.message}`);
-      }
-      throw error;
-    }
+
+    // Wrap in retry logic for automatic retries on transient failures
+    return retryLogic.executeWithRetry(
+      async () => {
+        // Acquire rate limit slot before making request
+        await rateLimiter.acquireSlot();
+
+        try {
+          const response = await graphQLClient.rawRequest(
+            document.loc?.source.body || '',
+            variables
+          );
+
+          // Update rate limiter with response headers (only on successful response)
+          if (response?.headers) {
+            // Convert Headers object to plain object
+            const headersObj: Record<string, string> = {};
+            if (typeof response.headers.forEach === 'function') {
+              response.headers.forEach((value: string, key: string) => {
+                headersObj[key] = value;
+              });
+            }
+            rateLimiter.updateFromHeaders(headersObj);
+          }
+
+          return response.data as T;
+        } catch (error) {
+          // Re-throw errors from rawRequest so retry logic can handle them
+          if (error instanceof Error) {
+            throw new Error(`GraphQL operation failed: ${error.message}`);
+          }
+          throw error;
+        }
+      },
+      { operationName: 'GraphQL request' }
+    );
   }
 
   // Create single issue
@@ -132,11 +158,8 @@ export class LinearGraphQLClient {
     });
   }
 
-  // Bulk update issues
-  async updateIssues(ids: string[], input: UpdateIssueInput): Promise<UpdateIssuesResponse> {
-    const { UPDATE_ISSUES_MUTATION } = await import('./mutations.js');
-    return this.execute<UpdateIssuesResponse>(UPDATE_ISSUES_MUTATION, { ids, input });
-  }
+  // Note: Linear API doesn't support bulk updates with multiple IDs
+  // Use updateIssue in a loop for bulk operations (see handleBulkUpdateIssues)
 
   // Create multiple labels
   async createIssueLabels(labels: LabelInput[]): Promise<LabelResponse> {

@@ -361,6 +361,15 @@ export const toolSchemas = {
     },
   },
 
+  linear_get_rate_limit_status: {
+    name: 'linear_get_rate_limit_status',
+    description: 'Get current rate limit status and API quota information. Shows requests made, remaining quota, reset time, and throttle status.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+
   linear_delete_issue: {
     name: 'linear_delete_issue',
     description: 'Delete an issue',
@@ -429,6 +438,26 @@ export const toolSchemas = {
         },
       },
       required: ['relationId'],
+    },
+  },
+
+  linear_update_issue_milestone: {
+    name: 'linear_update_issue_milestone',
+    description: 'Assign or remove a project milestone from an issue',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        issueId: {
+          type: 'string',
+          description: 'Issue ID (UUID or identifier like LOC-123)',
+        },
+        milestoneId: {
+          type: 'string',
+          description: 'Project milestone ID. Pass null or empty string to remove milestone assignment.',
+          optional: true,
+        },
+      },
+      required: ['issueId'],
     },
   },
 

@@ -7,6 +7,7 @@ import { TeamHandler } from '../../features/teams/handlers/team.handler.js';
 import { UserHandler } from '../../features/users/handlers/user.handler.js';
 import { CommentHandler } from '../../features/comments/handlers/comment.handler.js';
 import { MilestoneHandler } from '../../features/milestones/handlers/milestone.handler.js';
+import { MonitoringHandler } from '../../features/monitoring/handlers/monitoring.handler.js';
 
 /**
  * Factory for creating and managing feature-specific handlers.
@@ -20,6 +21,7 @@ export class HandlerFactory {
   private userHandler: UserHandler;
   private commentHandler: CommentHandler;
   private milestoneHandler: MilestoneHandler;
+  private monitoringHandler: MonitoringHandler;
 
   constructor(auth: LinearAuth, graphqlClient?: LinearGraphQLClient) {
     // Initialize all handlers with shared dependencies
@@ -30,13 +32,14 @@ export class HandlerFactory {
     this.userHandler = new UserHandler(auth, graphqlClient);
     this.commentHandler = new CommentHandler(auth, graphqlClient);
     this.milestoneHandler = new MilestoneHandler(auth, graphqlClient);
+    this.monitoringHandler = new MonitoringHandler(auth, graphqlClient);
   }
 
   /**
    * Gets the appropriate handler for a given tool name.
    */
   getHandlerForTool(toolName: string): {
-    handler: AuthHandler | IssueHandler | ProjectHandler | TeamHandler | UserHandler | CommentHandler | MilestoneHandler;
+    handler: AuthHandler | IssueHandler | ProjectHandler | TeamHandler | UserHandler | CommentHandler | MilestoneHandler | MonitoringHandler;
     method: string;
   } {
     // Map tool names to their handlers and methods
@@ -55,6 +58,7 @@ export class HandlerFactory {
       linear_delete_issues: { handler: this.issueHandler, method: 'handleDeleteIssues' },
       linear_link_issues: { handler: this.issueHandler, method: 'handleLinkIssues' },
       linear_unlink_issues: { handler: this.issueHandler, method: 'handleUnlinkIssues' },
+      linear_update_issue_milestone: { handler: this.issueHandler, method: 'handleUpdateIssueMilestone' },
 
       // Project tools
       linear_create_project_with_issues: { handler: this.projectHandler, method: 'handleCreateProjectWithIssues' },
@@ -79,6 +83,9 @@ export class HandlerFactory {
       linear_search_project_milestones: { handler: this.milestoneHandler, method: 'handleSearchProjectMilestones' },
       linear_get_project_milestones: { handler: this.milestoneHandler, method: 'handleGetProjectMilestones' },
       linear_create_project_milestones: { handler: this.milestoneHandler, method: 'handleCreateProjectMilestones' },
+
+      // Monitoring tools
+      linear_get_rate_limit_status: { handler: this.monitoringHandler, method: 'handleGetRateLimitStatus' },
     };
 
     const handlerInfo = handlerMap[toolName];

@@ -1,6 +1,8 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { LinearGraphQLClient } from '../graphql/client';
 import { LinearClient } from '@linear/sdk';
+import { rateLimiter } from '../core/middleware/rate-limiter';
+import { retryLogic } from '../core/middleware/retry-logic';
 import { 
   CreateIssueInput, 
   CreateIssueResponse,
@@ -59,6 +61,9 @@ describe('LinearGraphQLClient', () => {
 
     // Clear mocks
     mockRawRequest.mockReset();
+
+    // Reset real rate limiter and retry logic (NO MOCKS - use real implementations)
+    rateLimiter.reset();
 
     graphqlClient = new LinearGraphQLClient(linearClient);
   });
@@ -203,7 +208,8 @@ describe('LinearGraphQLClient', () => {
     });
 
     it('should handle search errors', async () => {
-      mockRawRequest.mockRejectedValueOnce(new Error('Search failed'));
+      // Use mockRejectedValue (not Once) because retry logic will retry 5 times
+      mockRawRequest.mockRejectedValue(new Error('Search failed'));
 
       const searchInput = {
         filter: {
@@ -260,7 +266,8 @@ describe('LinearGraphQLClient', () => {
     });
 
     it('should handle creation errors', async () => {
-      mockRawRequest.mockRejectedValueOnce(new Error('Creation failed'));
+      // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Creation failed'));
 
       const input: CreateIssueInput = {
         title: 'New Issue',
@@ -600,55 +607,8 @@ describe('LinearGraphQLClient', () => {
       );
     });
 
-    it('should update multiple issues with a single mutation', async () => {
-      const mockResponse = {
-        data: {
-          issueUpdate: {
-            success: true,
-            issues: [
-              {
-                id: 'issue-1',
-                identifier: 'TEST-1',
-                title: 'Updated Issue 1',
-                url: 'https://linear.app/test/issue/TEST-1'
-              },
-              {
-                id: 'issue-2',
-                identifier: 'TEST-2',
-                title: 'Updated Issue 2',
-                url: 'https://linear.app/test/issue/TEST-2'
-              }
-            ]
-          }
-        }
-      };
-
-      mockRawRequest.mockResolvedValueOnce(mockResponse);
-
-      const ids = ['issue-1', 'issue-2'];
-      const updateInput: UpdateIssueInput = { stateId: 'state-2' };
-      const result: UpdateIssuesResponse = await graphqlClient.updateIssues(ids, updateInput);
-
-      expect(result).toEqual(mockResponse.data);
-      // Verify single mutation call
-      expect(mockRawRequest).toHaveBeenCalledTimes(1);
-      expect(mockRawRequest).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          ids,
-          input: updateInput
-        })
-      );
-    });
-
-    it('should handle update errors', async () => {
-      mockRawRequest.mockRejectedValueOnce(new Error('Update failed'));
-
-      const updateInput: UpdateIssueInput = { stateId: 'state-2' };
-      await expect(
-        graphqlClient.updateIssues(['issue-1'], updateInput)
-      ).rejects.toThrow('GraphQL operation failed: Update failed');
-    });
+    // Note: updateIssues() method removed - Linear API doesn't support bulk update with ids parameter
+    // Bulk updates now loop updateIssue() calls in the handler (see handleBulkUpdateIssues)
 
     it('should delete multiple issues with parallel mutations', async () => {
       const mockResponse = {
@@ -715,7 +675,8 @@ describe('LinearGraphQLClient', () => {
     });
 
     it('should handle team fetch errors', async () => {
-      mockRawRequest.mockRejectedValueOnce(new Error('Team fetch failed'));
+      // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Team fetch failed'));
 
       await expect(graphqlClient.getTeams()).rejects.toThrow(
         'GraphQL operation failed: Team fetch failed'
@@ -744,7 +705,8 @@ describe('LinearGraphQLClient', () => {
     });
 
     it('should handle user fetch errors', async () => {
-      mockRawRequest.mockRejectedValueOnce(new Error('User fetch failed'));
+      // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('User fetch failed'));
 
       await expect(graphqlClient.getCurrentUser()).rejects.toThrow(
         'GraphQL operation failed: User fetch failed'
@@ -781,7 +743,8 @@ describe('LinearGraphQLClient', () => {
     });
 
     it('should handle label creation errors', async () => {
-      mockRawRequest.mockRejectedValueOnce(new Error('Label creation failed'));
+      // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Label creation failed'));
 
       const labelInput: LabelInput = {
         name: 'bug',
@@ -904,7 +867,8 @@ describe('LinearGraphQLClient', () => {
       });
 
       it('should handle creation errors', async () => {
-        mockRawRequest.mockRejectedValueOnce(new Error('Milestone creation failed'));
+        // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Milestone creation failed'));
 
         const input: ProjectMilestoneCreateInput = {
           name: 'Q1 Milestone',
@@ -961,7 +925,8 @@ describe('LinearGraphQLClient', () => {
       });
 
       it('should handle update errors', async () => {
-        mockRawRequest.mockRejectedValueOnce(new Error('Milestone update failed'));
+        // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Milestone update failed'));
 
         const input: ProjectMilestoneUpdateInput = {
           name: 'Updated Milestone',
@@ -998,7 +963,8 @@ describe('LinearGraphQLClient', () => {
       });
 
       it('should handle deletion errors', async () => {
-        mockRawRequest.mockRejectedValueOnce(new Error('Milestone deletion failed'));
+        // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Milestone deletion failed'));
 
         await expect(
           graphqlClient.deleteProjectMilestone('milestone-1')
@@ -1047,7 +1013,8 @@ describe('LinearGraphQLClient', () => {
       });
 
       it('should handle get errors', async () => {
-        mockRawRequest.mockRejectedValueOnce(new Error('Milestone fetch failed'));
+        // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Milestone fetch failed'));
 
         await expect(
           graphqlClient.getProjectMilestone('milestone-1')
@@ -1105,7 +1072,8 @@ describe('LinearGraphQLClient', () => {
       });
 
       it('should handle search errors', async () => {
-        mockRawRequest.mockRejectedValueOnce(new Error('Milestone search failed'));
+        // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+      mockRawRequest.mockRejectedValue(new Error('Milestone search failed'));
 
         await expect(
           graphqlClient.searchProjectMilestones({})
@@ -1253,9 +1221,10 @@ describe('LinearGraphQLClient', () => {
           },
         ];
 
+        // First call succeeds, all subsequent calls fail (retry will retry the second one 5 times)
         mockRawRequest
           .mockResolvedValueOnce(mockResponses[0])
-          .mockRejectedValueOnce(new Error('Second milestone failed'));
+          .mockRejectedValue(new Error('Second milestone failed'));
 
         const milestones: ProjectMilestoneCreateInput[] = [
           {
@@ -1278,7 +1247,106 @@ describe('LinearGraphQLClient', () => {
           graphqlClient.createProjectMilestone(milestones[1])
         ).rejects.toThrow('GraphQL operation failed: Second milestone failed');
 
-        expect(mockRawRequest).toHaveBeenCalledTimes(2);
+        // Retry logic retries the second request 5 times: 1 success + 5 failure attempts = 6 total
+        expect(mockRawRequest).toHaveBeenCalledTimes(6);
+      });
+    });
+  });
+
+  describe('Issue Milestone Assignment', () => {
+    describe('updateIssue with projectMilestoneId', () => {
+      it('should assign milestone to issue', async () => {
+        const updateInput: UpdateIssueInput = {
+          projectMilestoneId: 'milestone-123',
+        };
+
+        const mockResponse: UpdateIssuesResponse = {
+          issueUpdate: {
+            success: true,
+            issue: {
+              id: 'issue-1',
+              identifier: 'LOC-278',
+              title: 'Test Issue',
+              url: 'https://linear.app/locomotive-agency/issue/LOC-278',
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce({ data: mockResponse });
+
+        const result = await graphqlClient.updateIssue('LOC-278', updateInput);
+
+        expect(result).toEqual(mockResponse);
+        expect(mockRawRequest).toHaveBeenCalled();
+      });
+
+      it('should remove milestone from issue when projectMilestoneId is null', async () => {
+        const updateInput: UpdateIssueInput = {
+          projectMilestoneId: null,
+        };
+
+        const mockResponse: UpdateIssuesResponse = {
+          issueUpdate: {
+            success: true,
+            issue: {
+              id: 'issue-1',
+              identifier: 'LOC-278',
+              title: 'Test Issue',
+              url: 'https://linear.app/locomotive-agency/issue/LOC-278',
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce({ data: mockResponse });
+
+        const result = await graphqlClient.updateIssue('LOC-278', updateInput);
+
+        expect(result).toEqual(mockResponse);
+        expect(mockRawRequest).toHaveBeenCalled();
+      });
+
+      it('should handle milestone assignment errors gracefully', async () => {
+        const updateInput: UpdateIssueInput = {
+          projectMilestoneId: 'invalid-milestone',
+        };
+
+        // Retry logic will retry 5 times, so use mockRejectedValue (not Once)
+        mockRawRequest.mockRejectedValue(
+          new Error('Milestone not found')
+        );
+
+        await expect(
+          graphqlClient.updateIssue('LOC-278', updateInput)
+        ).rejects.toThrow('GraphQL operation failed: Milestone not found');
+
+        expect(mockRawRequest).toHaveBeenCalled();
+      });
+
+      it('should handle combined milestone and other field updates', async () => {
+        const updateInput: UpdateIssueInput = {
+          title: 'Updated Title',
+          projectMilestoneId: 'milestone-456',
+          priority: 2,
+        };
+
+        const mockResponse: UpdateIssuesResponse = {
+          issueUpdate: {
+            success: true,
+            issue: {
+              id: 'issue-1',
+              identifier: 'LOC-278',
+              title: 'Updated Title',
+              url: 'https://linear.app/locomotive-agency/issue/LOC-278',
+            },
+          },
+        };
+
+        mockRawRequest.mockResolvedValueOnce({ data: mockResponse });
+
+        const result = await graphqlClient.updateIssue('LOC-278', updateInput);
+
+        expect(result).toEqual(mockResponse);
+        expect(result.issueUpdate.issue.title).toBe('Updated Title');
       });
     });
   });

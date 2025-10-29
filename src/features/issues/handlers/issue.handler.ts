@@ -136,7 +136,7 @@ export class IssueHandler extends BaseHandler implements IssueHandlerMethods {
         throw new Error('Failed to update issue');
       }
 
-      const updatedIssue = result.issueUpdate.issues[0];
+      const updatedIssue = result.issueUpdate.issue;
 
       return this.createResponse(
         `Successfully updated issue\n` +
@@ -151,6 +151,7 @@ export class IssueHandler extends BaseHandler implements IssueHandlerMethods {
 
   /**
    * Updates multiple issues in bulk.
+   * Note: Linear API doesn't support true bulk updates, so this loops individual updates.
    */
   async handleBulkUpdateIssues(args: BulkUpdateIssuesInput): Promise<BaseToolResponse> {
     try {
@@ -161,29 +162,43 @@ export class IssueHandler extends BaseHandler implements IssueHandlerMethods {
         throw new Error('IssueIds parameter must be an array');
       }
 
-      let result;
-      
-      // Handle single issue update vs bulk update differently
-      if (args.issueIds.length === 1) {
-        // For a single issue, use updateIssue which uses the correct 'id' parameter
-        result = await client.updateIssue(args.issueIds[0], args.update) as UpdateIssuesResponse;
-        
-        if (!result.issueUpdate.success) {
-          throw new Error('Failed to update issue');
-        }
-        
-        return this.createResponse(`Successfully updated issue`);
-      } else {
-        // For multiple issues, use updateIssues
-        result = await client.updateIssues(args.issueIds, args.update) as UpdateIssuesResponse;
-        
-        if (!result.issueUpdate.success) {
-          throw new Error('Failed to update issues');
-        }
-        
-        const updatedCount = result.issueUpdate.issues.length;
-        return this.createResponse(`Successfully updated ${updatedCount} issues`);
+      if (args.issueIds.length === 0) {
+        return this.createResponse('No issues to update');
       }
+
+      // Linear API only supports single issue updates via issueUpdate(id: String!)
+      // So we loop and update each issue individually
+      const results = [];
+      const errors = [];
+
+      for (const issueId of args.issueIds) {
+        try {
+          const result = await client.updateIssue(issueId, args.update) as UpdateIssuesResponse;
+
+          if (result.issueUpdate.success && result.issueUpdate.issue) {
+            results.push(result.issueUpdate.issue);
+          } else {
+            errors.push(`Failed to update issue ${issueId}`);
+          }
+        } catch (error) {
+          errors.push(`Error updating ${issueId}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
+      const successCount = results.length;
+      const failureCount = errors.length;
+
+      let response = `Bulk update completed: ${successCount} succeeded, ${failureCount} failed`;
+
+      if (results.length > 0) {
+        response += `\n\nUpdated issues:\n${results.map(issue => `- ${issue.identifier}: ${issue.title}`).join('\n')}`;
+      }
+
+      if (errors.length > 0) {
+        response += `\n\nErrors:\n${errors.map(err => `- ${err}`).join('\n')}`;
+      }
+
+      return this.createResponse(response);
     } catch (error) {
       this.handleError(error, 'update issues');
     }
@@ -346,6 +361,45 @@ export class IssueHandler extends BaseHandler implements IssueHandlerMethods {
       return this.createResponse(`Successfully removed issue relationship`);
     } catch (error) {
       this.handleError(error, 'unlink issues');
+    }
+  }
+
+  /**
+   * Assigns or removes a project milestone from an issue.
+   * Pass null or empty milestoneId to remove milestone assignment.
+   */
+  async handleUpdateIssueMilestone(args: any): Promise<BaseToolResponse> {
+    try {
+      const client = this.verifyAuth();
+      this.validateRequiredParams(args, ['issueId']);
+
+      const updateInput: UpdateIssueInput = {};
+
+      // Handle milestone assignment or removal
+      if (args.milestoneId !== undefined && args.milestoneId !== null && args.milestoneId !== '') {
+        updateInput.projectMilestoneId = args.milestoneId;
+      } else {
+        // null or empty string = remove milestone
+        updateInput.projectMilestoneId = null;
+      }
+
+      // Use existing updateIssue for the actual update
+      const result = await client.updateIssue(args.issueId, updateInput) as UpdateIssuesResponse;
+
+      if (!result.issueUpdate.success) {
+        throw new Error('Failed to update issue milestone');
+      }
+
+      const updatedIssue = result.issueUpdate.issue;
+      const action = args.milestoneId ? 'assigned to' : 'removed from';
+
+      return this.createResponse(
+        `Milestone ${action} issue ${updatedIssue.identifier}\n` +
+        `Issue: ${updatedIssue.title}\n` +
+        `URL: ${updatedIssue.url}`
+      );
+    } catch (error) {
+      this.handleError(error, 'update issue milestone');
     }
   }
 }

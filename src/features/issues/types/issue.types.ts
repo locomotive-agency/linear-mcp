@@ -25,6 +25,8 @@ export interface UpdateIssueInput {
   priority?: number;
   projectId?: string;
   stateId?: string;
+  /** Optional project milestone ID. Set to null to remove milestone assignment. */
+  projectMilestoneId?: string | null;
 }
 
 export interface BulkUpdateIssuesInput {
@@ -97,7 +99,7 @@ export interface IssueBatchResponse {
 export interface UpdateIssuesResponse {
   issueUpdate: {
     success: boolean;
-    issues: Issue[];
+    issue: Issue;  // Single issue, not array
   };
 }
 

@@ -90,22 +90,8 @@ export const UPDATE_ISSUE_MUTATION = gql`
   }
 `;
 
-export const UPDATE_ISSUES_MUTATION = gql`
-  mutation UpdateIssues($ids: [String!]!, $input: IssueUpdateInput!) {
-    issueUpdate(ids: $ids, input: $input) {
-      success
-      issues {
-        id
-        identifier
-        title
-        url
-        state {
-          name
-        }
-      }
-    }
-  }
-`;
+// Note: UPDATE_ISSUES_MUTATION removed - Linear API doesn't support bulk updates with ids parameter
+// Use UPDATE_ISSUE_MUTATION in a loop for bulk operations
 
 export const DELETE_ISSUE_MUTATION = gql`
   mutation DeleteIssue($id: String!) {
