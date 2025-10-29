@@ -30,3 +30,13 @@ Thumbs.db
 
 # Test coverage
 coverage/
+
+# Documentation - ignore project notes/logs but keep standard GitHub files
+*.md
+!README.md
+!CONTRIBUTING.md
+!LICENSE.md
+!ATTRIBUTION.md
+!CHANGELOG.md
+!CODE_OF_CONDUCT.md
+!SECURITY.md
