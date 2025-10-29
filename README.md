@@ -657,7 +657,7 @@ Handle OAuth authorization callback (OAuth apps only).
 - Description: Add OAuth 2.0 with Google and GitHub providers
 - Priority: High (2)
 - Estimate: 8 points
-- Assignee: marty@locomotive.agency
+- Assignee: john@example.com
 - Project: Phase 2 Features"
 ```
 
@@ -1070,7 +1070,6 @@ This project builds upon the excellent foundation of [cline/linear-mcp](https://
 
 **Original Authors**: Cline team
 **Enhanced By**: LOCOMOTIVE Agency
-**Maintained By**: Marty Martin (marty@locomotive.agency)
 
 See [ATTRIBUTION.md](ATTRIBUTION.md) for detailed credits.
 
@@ -1092,7 +1091,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ### Community
 - **Issues**: [GitHub Issues](https://github.com/locomotive-agency/linear-mcp/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/locomotive-agency/linear-mcp/discussions)
-- **Email**: marty@locomotive.agency
 
 ### Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
@@ -1122,39 +1120,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 ✅ Structured error logging
 ✅ Observable operations
 ✅ Production-ready
-
----
-
-## 🚀 Quick Start
-
-```bash
-# 1. Clone and build
-git clone https://github.com/locomotive-agency/linear-mcp.git
-cd linear-mcp
-npm install
-npm run build
-
-# 2. Get Linear API key
-# Go to: https://linear.app/settings/api
-# Create new API key
-
-# 3. Configure Claude Code
-# Edit ~/.claude.json:
-{
-  "mcpServers": {
-    "linear": {
-      "command": "node",
-      "args": ["/absolute/path/to/linear-mcp/build/index.js"],
-      "env": {
-        "LINEAR_API_KEY": "lin_api_your_key"
-      }
-    }
-  }
-}
-
-# 4. Restart Claude Code and try:
-# "List my Linear teams"
-```
 
 ---
 
